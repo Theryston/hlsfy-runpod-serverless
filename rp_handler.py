@@ -14,6 +14,10 @@ def handler(event):
     
     input = event['input']
     
+    if input.get('check_only'):
+        response = requests.get(f"{HLSFY_API_HOST}")
+        return response.json()
+
     response = requests.post(f"{HLSFY_API_HOST}", json=input)
     data = response.json()
     

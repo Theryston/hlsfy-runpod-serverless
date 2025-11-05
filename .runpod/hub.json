@@ -1,0 +1,11 @@
+{
+  "title": "HLSFy",
+  "description": "Transform any input video into HLS and upload the outputs to your S3-compatible storage.",
+  "type": "serverless",
+  "category": "video",
+  "iconUrl": "https://i.imgur.com/Ujp0pwm.png",
+  "config": {
+    "runsOn": "CPU",
+    "containerDiskInGb": 5
+  }
+}
