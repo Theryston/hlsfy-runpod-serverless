@@ -2,6 +2,8 @@
 
 This project packages the open-source `hlsfy` API into a Runpod Serverless worker. Its single purpose is to transform any input video into HLS and upload the outputs to your S3-compatible storage.
 
+[![Runpod](https://api.runpod.io/badge/Theryston/hlsfy-runpod-serverless)](https://console.runpod.io/hub/Theryston/hlsfy-runpod-serverless)
+
 ### What this does
 
 - Starts the upstream `hlsfy` service inside the container.
