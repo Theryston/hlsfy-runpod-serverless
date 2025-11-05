@@ -9,6 +9,6 @@
     }
   ],
   "config": {
-    "cpuFlavor": "11th Gen Intel(R) Core(TM) i5-11400 @ 2.60GHz"
+    "cpuFlavor": "cpu3c-16-32"
   }
 }
