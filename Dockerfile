@@ -1,20 +1,26 @@
-FROM docker:24.0-dind
+FROM python:3.11-alpine
 
-RUN apk add --no-cache python3 py3-pip ca-certificates wget
+RUN apk add --no-cache nodejs npm ffmpeg git make g++
 
-WORKDIR /app
+WORKDIR /hlsfy
 
-COPY requirements.txt .
+ENV npm_config_python=/usr/bin/python3
 
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-ENV PIP_NO_CACHE_DIR=1
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
-ENV DOCKER_TLS_CERTDIR=
+RUN git clone https://github.com/Theryston/hlsfy.git .
 
-RUN pip3 install -r requirements.txt
+RUN npm install
+RUN npm run build
+RUN npm prune --production
+RUN rm -rf ./src
+
+RUN chmod +x ./start.sh
+
+WORKDIR /hlsfy-runpod
 
 COPY . .
 
-RUN chmod +x /app/entrypoint.sh
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["/bin/sh", "entrypoint.sh"]

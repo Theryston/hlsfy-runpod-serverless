@@ -10,7 +10,7 @@ def handler(event):
     HLSFY_API_HOST = os.getenv("HLSFY_API_HOST")
     
     if not HLSFY_API_HOST:
-        raise ValueError("HLSFY_API_HOST is not set")
+        raise ValueError("[RUNPOD] HLSFY_API_HOST is not set")
     
     input = event['input']
     
@@ -20,7 +20,7 @@ def handler(event):
     status = data['status']
     
     while status != 'done' and status != 'failed':
-        print(f"Status: {status} - waiting for new status")
+        print(f"[RUNPOD] Status: {status} - waiting for new status")
         time.sleep(1)
         data = requests.get(f"{HLSFY_API_HOST}/{data['id']}").json()
         status = data['status']
