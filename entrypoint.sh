@@ -1,19 +1,22 @@
 #!/bin/sh
 set -e
 
-# Start Docker daemon (from docker:dind)
+export DOCKER_TLS_CERTDIR=
 /usr/local/bin/dockerd-entrypoint.sh >/var/log/dockerd.log 2>&1 &
 
-# Wait for Docker to be ready
-tries=0
+echo "Starting Docker daemon..."
+i=0
 until docker info >/dev/null 2>&1; do
-  tries=$((tries+1))
-  if [ "$tries" -ge 60 ]; then
-    echo "Docker daemon not ready after 60s" >&2
+  i=$((i+1))
+  if [ "$i" -gt 60 ]; then
+    echo "Docker daemon failed to start after 60s" >&2
+    cat /var/log/dockerd.log >&2 || true
     exit 1
   fi
   sleep 1
 done
+
+echo "Docker daemon is ready!"
 
 # Ensure the image is present
 docker pull theryston/hlsfy >/dev/null 2>&1 || docker pull theryston/hlsfy
@@ -24,17 +27,18 @@ if [ -z "$port" ]; then
   port=8080
 fi
 
-# Run the theryston/hlsfy container detached
-cid=$(docker run -e IGNORE_CHECK_PROCESS=true -d theryston/hlsfy)
+cleanup() {
+  if [ -n "$cid" ]; then
+    docker stop "$cid" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup EXIT
 
-# Resolve container IP inside the DinD network namespace
-ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$cid")
-if [ -z "$ip" ]; then
-  echo "Failed to resolve theryston/hlsfy container IP" >&2
-  exit 1
-fi
+# Run the theryston/hlsfy container detached, publishing its port to localhost
+cid=
+cid=$(docker run -e IGNORE_CHECK_PROCESS=true -d -p 127.0.0.1:"$port":"$port" theryston/hlsfy)
 
-export HLSFY_API_HOST="http://$ip:$port"
+export HLSFY_API_HOST="http://127.0.0.1:$port"
 echo "HLSFY_API_HOST set to $HLSFY_API_HOST"
 
 # Best-effort wait for API readiness
@@ -48,9 +52,4 @@ until wget -qO- "$HLSFY_API_HOST/health" >/dev/null 2>&1 || wget -qO- "$HLSFY_AP
   sleep 1
 done
 
-exec python3 -u rp_handler.py
-
-docker stop $cid
-docker rm $cid
-
-echo "Container stopped and removed"
+python3 -u rp_handler.py
