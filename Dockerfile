@@ -1,17 +1,15 @@
-FROM python:3.11-alpine
+FROM python:3.11
 
-RUN apk add --no-cache nodejs npm ffmpeg git make g++
+RUN apt-get update && apt-get install -y ffmpeg git make g++ curl
+RUN curl -fsSL https://bun.com/install | bash
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="$BUN_INSTALL/bin:$PATH"
 
 WORKDIR /hlsfy
 
-ENV npm_config_python=/usr/bin/python3
-
 RUN git clone https://github.com/Theryston/hlsfy.git .
 
-RUN npm install
-RUN npm run build
-RUN npm prune --production
-RUN rm -rf ./src
+RUN bun install
 
 RUN chmod +x ./start.sh
 
